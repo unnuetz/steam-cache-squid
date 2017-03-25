@@ -1,0 +1,33 @@
+#!/bin/bash -ue
+
+# Write the configuration
+m4 -DCACHE_MAX_SIZE="{{${CACHE_MAX_SIZE:-100}}}" \
+   -DCACHE_MAX_OBJECT_SIZE="{{${CACHE_MAX_OBJECT_SIZE:-4}}}" \
+   -DCACHE_MAX_MEM="{{${CACHE_MAX_MEM:-256}}}" \
+   -DSQUID_LOCALNET="{{${SQUID_LOCALNET:-127.0.0.1/32}}}" \
+   -DSQUID_CACHE_PEER="{{${SQUID_CACHE_PEER:-}}}" \
+   -DSQUID_NEVER_DIRECT="{{${SQUID_NEVER_DIRECT:-}}}" \
+   /etc/squid3/squid.conf.m4 > /etc/squid3/squid.conf
+
+#		acssions on the log dir
+sudo -u proxy -H mkdir -p /var/log/squid3
+chmod -R 755 /var/log/squid3
+chown -R proxy:proxy /var/log/squid3
+
+# fix permissions on the cache dir
+sudo -u proxy -H mkdir -p /var/spool/squid3
+chown -R proxy:proxy /var/spool/squid3
+
+# initialize the cache_dir
+if [ ! -d /var/spool/squid3/00 ]; then
+  /usr/sbin/squid3 -N -f /etc/squid3/squid.conf -z
+fi
+
+if [ -n "${SQUID_USERNAME:-}" ] && [ -n "${SQUID_PASSWORD:-}" ]; then
+  htpasswd -bc /etc/squid3/passwd "${SQUID_USERNAME}" "${SQUID_PASSWORD}"
+fi
+
+# -X verbose debug logging
+# -N Don't run in daemon mode - important for docker
+
+exec /usr/sbin/squid3 -N -X -Y -C -f /etc/squid3/squid.conf $@
