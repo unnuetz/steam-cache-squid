@@ -15,12 +15,15 @@ ENV CACHE_MAX_MEM 256
 RUN apt-get update && \
     apt-get install -y squid3 apache2-utils m4 && \
     mv /etc/squid3/squid.conf /etc/squid3/squid.conf.dist && \
-	cp steam_store_id /etc/squid3 && \
-	mkdir /etc/squid3/conf.d && \
-	cp squid.acl.conf /etc/squid3/conf && \
-	cp steam.conf /etc/squid3/conf && \
-    apt-get clean
+	apt-get clean
 
+RUN cd /etc/squid3 && \
+	mkdir /etc/squid3/conf.d && \
+	curl https://github.com/unnuetz/steam-cache-squid/blob/master/steam_store_id --output steam_store_id && \
+	cd /etc/squid3/conf && \
+	curl https://github.com/unnuetz/steam-cache-squid/blob/master/squid.acl.conf --output squid.acl.conf && \
+	curl https://github.com/unnuetz/steam-cache-squid/blob/master/steam.conf --output steam.conf
+		
 ADD squid.conf.m4 /etc/squid3/squid.conf.m4
 ADD start /start
 
