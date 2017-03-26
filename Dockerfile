@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:14.04
 
 MAINTAINER  Sven Krueger "lamagra@lamagra-online.de"
 
@@ -17,13 +17,9 @@ RUN apt-get update && \
     mv /etc/squid3/squid.conf /etc/squid3/squid.conf.dist && \
 	apt-get clean
 
-RUN cd /etc/squid3 && \
-	mkdir /etc/squid3/conf.d && \
-	curl https://github.com/unnuetz/steam-cache-squid/blob/master/steam_store_id --output steam_store_id && \
-	cd /etc/squid3/conf && \
-	curl https://github.com/unnuetz/steam-cache-squid/blob/master/squid.acl.conf --output squid.acl.conf && \
-	curl https://github.com/unnuetz/steam-cache-squid/blob/master/steam.conf --output steam.conf
-		
+ADD	steam_store_id /etc/squid3/steam_store_id 
+ADD	squid.acl.conf /etc/squid3/conf.d/squid.acl.conf 
+ADD	steam.conf /etc/squid3/conf.d/steam.conf
 ADD squid.conf.m4 /etc/squid3/squid.conf.m4
 ADD start /start
 
